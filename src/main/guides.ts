@@ -9,7 +9,8 @@ import {
   cpSync,
   rmSync
 } from 'fs'
-import { join, basename, normalize, sep } from 'path'
+import { join, basename, dirname, normalize, sep } from 'path'
+import AdmZip from 'adm-zip'
 import type { DesignGuide } from '../shared/types'
 import { projectsRoot } from './projects'
 
@@ -97,11 +98,39 @@ export function deleteGuide(id: string): boolean {
   return true
 }
 
+/** Extract a .zip into `dest`, guarding against zip-slip and skipping junk. */
+function extractZipInto(zipPath: string, dest: string): void {
+  const base = normalize(dest + sep)
+  const entries = new AdmZip(zipPath).getEntries()
+  for (const entry of entries) {
+    if (entry.isDirectory) continue
+    const name = entry.entryName
+    const leaf = name.split('/').pop() ?? ''
+    // Skip archive metadata / OS junk / our own guide metadata.
+    if (name.startsWith('__MACOSX/') || leaf === '.DS_Store' || leaf === GUIDE_META) continue
+    const target = normalize(join(dest, name))
+    if (target !== normalize(dest) && !target.startsWith(base)) continue // zip-slip
+    mkdirSync(dirname(target), { recursive: true })
+    writeFileSync(target, entry.getData())
+  }
+}
+
 export function addGuideFiles(id: string, sourcePaths: string[]): DesignGuide | null {
   const guide = getGuide(id)
   if (!guide) return null
   for (const src of sourcePaths) {
     if (!src || !existsSync(src)) continue
+
+    // Dropped a zip? Unpack it into the guide instead of storing the archive.
+    if (src.toLowerCase().endsWith('.zip')) {
+      try {
+        extractZipInto(src, guide.path)
+        continue
+      } catch {
+        // Fall through and store the raw file if it isn't a valid archive.
+      }
+    }
+
     let target = join(guide.path, basename(src))
     if (existsSync(target)) {
       const name = basename(src)

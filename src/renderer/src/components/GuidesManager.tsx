@@ -92,7 +92,7 @@ export function GuidesManager({ guides, onClose, onChanged }: Props): JSX.Elemen
                   <div className="guide-meta">
                     <span className="guide-name">{g.name}</span>
                     <span className="guide-count">
-                      {g.fileCount} file{g.fileCount === 1 ? '' : 's'} · drop files to add
+                      {g.fileCount} file{g.fileCount === 1 ? '' : 's'} · drop files or a .zip
                     </span>
                   </div>
                   <div className="guide-actions">
