@@ -260,22 +260,60 @@ button {
   font-size: 12px;
   padding: 10px 8px;
 }
+.project-row {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+}
+.project-row:hover {
+  background: var(--bg-3);
+}
+.project-row.selected {
+  background: var(--bg-3);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
 .project-item {
+  flex: 1;
+  min-width: 0;
   text-align: left;
   background: none;
   border: none;
   color: var(--text);
   padding: 9px 10px;
-  border-radius: 8px;
   font-size: 13px;
-  width: 100%;
 }
-.project-item:hover {
-  background: var(--bg-3);
+.project-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.project-item.selected {
-  background: var(--bg-3);
-  box-shadow: inset 2px 0 0 var(--accent);
+.project-del {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 6px 9px;
+  border-radius: 7px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.project-row:hover .project-del {
+  opacity: 1;
+}
+.project-del:hover {
+  color: var(--danger);
+  background: rgba(247, 118, 142, 0.12);
+}
+.btn.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #0b0d12;
+  font-weight: 600;
+}
+.btn.danger:hover {
+  background: #f5607a;
 }
 .sidebar-footer {
   border-top: 1px solid var(--border);

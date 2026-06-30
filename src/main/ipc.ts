@@ -4,6 +4,7 @@ import { detectClaude, installCommand } from './claude'
 import {
   listProjects,
   createProject,
+  deleteProject,
   getProject,
   listAssets,
   addAssets
@@ -11,7 +12,7 @@ import {
 import { sessionManager } from './session'
 import { terminalManager } from './terminal'
 import { initUpdater, checkForUpdates, installUpdate, openReleases, getStatus } from './updater'
-import { openPreview, disposePreview } from './preview'
+import { openPreview, disposePreview, closePreview } from './preview'
 import { hostingStatus, saveToken, clearToken, publish } from './hosting'
 
 function broadcast(channel: string, payload: unknown): void {
@@ -30,6 +31,12 @@ export function registerIpc(): void {
   ipcMain.handle('projects:create', (_e, name: string) =>
     createProject(name, new Date().toISOString())
   )
+  ipcMain.handle('projects:delete', async (_e, id: string) => {
+    // Release anything holding the folder open before removing it.
+    await sessionManager.stop(id)
+    closePreview(id)
+    return deleteProject(id)
+  })
   ipcMain.handle('projects:reveal', (_e, id: string) => {
     const project = getProject(id)
     if (project) shell.openPath(project.path)

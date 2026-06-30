@@ -7,9 +7,10 @@ import {
   readFileSync,
   writeFileSync,
   copyFileSync,
-  statSync
+  statSync,
+  rmSync
 } from 'fs'
-import { join, basename } from 'path'
+import { join, basename, normalize, sep } from 'path'
 import type { Project, AssetFile, PublishInfo } from '../shared/types'
 
 const META_FILE = '.slidecraft.json'
@@ -132,6 +133,24 @@ export function setPublishInfo(id: string, publish: PublishInfo): Project | null
   const updated = { ...project, publish }
   writeMeta(updated)
   return updated
+}
+
+/**
+ * Permanently delete a project folder. Guarded so it only ever removes a
+ * directory that (a) sits under the SlideCraft projects root and (b) actually
+ * contains a project metadata file — never an arbitrary path.
+ */
+export function deleteProject(id: string): boolean {
+  const project = getProject(id)
+  if (!project) return false
+
+  const root = normalize(projectsRoot() + sep)
+  const target = normalize(project.path)
+  if (!target.startsWith(root)) return false // refuse anything outside the root
+  if (!existsSync(join(target, META_FILE))) return false // not a real project
+
+  rmSync(target, { recursive: true, force: true })
+  return true
 }
 
 export function assetsDir(project: Project): string {

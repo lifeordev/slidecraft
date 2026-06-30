@@ -60,6 +60,11 @@ export function App(): JSX.Element {
           await refreshProjects()
           setActiveId(project.id)
         }}
+        onDelete={async (id) => {
+          await window.api.projects.delete(id)
+          await refreshProjects()
+          setActiveId((cur) => (cur === id ? null : cur))
+        }}
       />
       <main className="main">
         {active ? (

@@ -22,6 +22,7 @@ const api: Api = {
   projects: {
     list: () => ipcRenderer.invoke('projects:list') as Promise<Project[]>,
     create: (name) => ipcRenderer.invoke('projects:create', name) as Promise<Project>,
+    delete: (id) => ipcRenderer.invoke('projects:delete', id) as Promise<boolean>,
     reveal: (id) => ipcRenderer.invoke('projects:reveal', id) as Promise<void>,
     listAssets: (id) => ipcRenderer.invoke('projects:listAssets', id) as Promise<AssetFile[]>,
     addAssets: (id, paths) =>

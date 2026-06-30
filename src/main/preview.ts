@@ -97,6 +97,14 @@ export async function openPreview(projectId: string): Promise<PreviewResult> {
   return { ok: true, url }
 }
 
+/** Close a single project's preview window and unmount it from the server. */
+export function closePreview(projectId: string): void {
+  const win = windows.get(projectId)
+  if (win && !win.isDestroyed()) win.destroy()
+  windows.delete(projectId)
+  mounts.delete(projectId)
+}
+
 export function disposePreview(): void {
   for (const win of windows.values()) if (!win.isDestroyed()) win.destroy()
   windows.clear()

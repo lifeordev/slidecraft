@@ -109,6 +109,7 @@ export interface Api {
   projects: {
     list: () => Promise<Project[]>
     create: (name: string) => Promise<Project>
+    delete: (id: string) => Promise<boolean>
     reveal: (id: string) => Promise<void>
     listAssets: (id: string) => Promise<AssetFile[]>
     addAssets: (id: string, paths: string[]) => Promise<AssetFile[]>
