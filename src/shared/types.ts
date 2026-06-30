@@ -28,6 +28,19 @@ export interface Project {
   sessionId: string | null
   /** Where this deck was last published, if anywhere. */
   publish: PublishInfo | null
+  /** Design guide this project was created from, if any (snapshot copied in). */
+  guideId: string | null
+  guideName: string | null
+}
+
+export interface DesignGuide {
+  id: string
+  name: string
+  /** Absolute path to the guide folder. */
+  path: string
+  createdAt: string
+  /** Number of files (markdown/images/etc.) in the guide. */
+  fileCount: number
 }
 
 export interface AssetFile {
@@ -108,7 +121,7 @@ export interface Api {
   }
   projects: {
     list: () => Promise<Project[]>
-    create: (name: string) => Promise<Project>
+    create: (name: string, guideId?: string | null) => Promise<Project>
     delete: (id: string) => Promise<boolean>
     reveal: (id: string) => Promise<void>
     listAssets: (id: string) => Promise<AssetFile[]>
@@ -128,6 +141,13 @@ export interface Api {
     kill: (id: string) => void
     onData: (cb: (data: TerminalData) => void) => () => void
     onExit: (cb: (exit: TerminalExit) => void) => () => void
+  }
+  guides: {
+    list: () => Promise<DesignGuide[]>
+    create: (name: string) => Promise<DesignGuide>
+    delete: (id: string) => Promise<boolean>
+    addFiles: (id: string, paths: string[]) => Promise<DesignGuide>
+    reveal: (id: string) => Promise<void>
   }
   preview: {
     /** Start (or reuse) a local preview of the project's deck. */

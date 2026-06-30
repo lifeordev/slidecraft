@@ -795,3 +795,74 @@ button {
   border-radius: 8px;
   padding: 10px 12px;
 }
+
+/* ---------- design guides ---------- */
+.text-input.select {
+  margin-top: 6px;
+  cursor: pointer;
+}
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guides-btn {
+  width: 100%;
+}
+.guide-create {
+  display: flex;
+  gap: 6px;
+}
+.guide-create .text-input {
+  flex: 1;
+}
+.guides-empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 8px 2px;
+}
+.guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.guide-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-3);
+}
+.guide-item.drag-over {
+  border-color: var(--accent);
+  background: rgba(122, 162, 247, 0.08);
+}
+.guide-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.guide-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.guide-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+.guide-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.modal.small {
+  width: 380px;
+}

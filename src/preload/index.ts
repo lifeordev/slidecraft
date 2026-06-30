@@ -11,7 +11,8 @@ import type {
   PreviewResult,
   HostingStatus,
   TokenResult,
-  PublishResult
+  PublishResult,
+  DesignGuide
 } from '../shared/types'
 
 const api: Api = {
@@ -21,7 +22,8 @@ const api: Api = {
   },
   projects: {
     list: () => ipcRenderer.invoke('projects:list') as Promise<Project[]>,
-    create: (name) => ipcRenderer.invoke('projects:create', name) as Promise<Project>,
+    create: (name, guideId) =>
+      ipcRenderer.invoke('projects:create', name, guideId ?? null) as Promise<Project>,
     delete: (id) => ipcRenderer.invoke('projects:delete', id) as Promise<boolean>,
     reveal: (id) => ipcRenderer.invoke('projects:reveal', id) as Promise<void>,
     listAssets: (id) => ipcRenderer.invoke('projects:listAssets', id) as Promise<AssetFile[]>,
@@ -56,6 +58,14 @@ const api: Api = {
       ipcRenderer.on('terminal:exit', listener)
       return () => ipcRenderer.removeListener('terminal:exit', listener)
     }
+  },
+  guides: {
+    list: () => ipcRenderer.invoke('guides:list') as Promise<DesignGuide[]>,
+    create: (name) => ipcRenderer.invoke('guides:create', name) as Promise<DesignGuide>,
+    delete: (id) => ipcRenderer.invoke('guides:delete', id) as Promise<boolean>,
+    addFiles: (id, paths) =>
+      ipcRenderer.invoke('guides:addFiles', id, paths) as Promise<DesignGuide>,
+    reveal: (id) => ipcRenderer.invoke('guides:reveal', id) as Promise<void>
   },
   preview: {
     open: (projectId) => ipcRenderer.invoke('preview:open', projectId) as Promise<PreviewResult>

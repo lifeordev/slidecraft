@@ -12,6 +12,14 @@ import {
 import { sessionManager } from './session'
 import { terminalManager } from './terminal'
 import { initUpdater, checkForUpdates, installUpdate, openReleases, getStatus } from './updater'
+import {
+  listGuides,
+  createGuide,
+  deleteGuide,
+  addGuideFiles,
+  getGuide,
+  copyGuideInto
+} from './guides'
 import { openPreview, disposePreview, closePreview } from './preview'
 import { hostingStatus, saveToken, clearToken, publish } from './hosting'
 
@@ -28,9 +36,16 @@ export function registerIpc(): void {
 
   // --- projects ---
   ipcMain.handle('projects:list', () => listProjects())
-  ipcMain.handle('projects:create', (_e, name: string) =>
-    createProject(name, new Date().toISOString())
-  )
+  ipcMain.handle('projects:create', (_e, name: string, guideId?: string | null) => {
+    const guide = guideId ? getGuide(guideId) : null
+    const project = createProject(
+      name,
+      new Date().toISOString(),
+      guide ? { id: guide.id, name: guide.name } : null
+    )
+    if (guide) copyGuideInto(project.path, guide.id)
+    return project
+  })
   ipcMain.handle('projects:delete', async (_e, id: string) => {
     // Release anything holding the folder open before removing it.
     await sessionManager.stop(id)
@@ -70,6 +85,18 @@ export function registerIpc(): void {
   ipcMain.on('terminal:kill', (_e, id: string) => terminalManager.kill(id))
   terminalManager.on('data', (payload) => broadcast('terminal:data', payload))
   terminalManager.on('exit', (payload) => broadcast('terminal:exit', payload))
+
+  // --- design guides ---
+  ipcMain.handle('guides:list', () => listGuides())
+  ipcMain.handle('guides:create', (_e, name: string) =>
+    createGuide(name, new Date().toISOString())
+  )
+  ipcMain.handle('guides:delete', (_e, id: string) => deleteGuide(id))
+  ipcMain.handle('guides:addFiles', (_e, id: string, paths: string[]) => addGuideFiles(id, paths))
+  ipcMain.handle('guides:reveal', (_e, id: string) => {
+    const guide = getGuide(id)
+    if (guide) shell.openPath(guide.path)
+  })
 
   // --- preview ---
   ipcMain.handle('preview:open', (_e, projectId: string) => openPreview(projectId))

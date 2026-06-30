@@ -39,12 +39,23 @@ function uniqueDir(root: string, slug: string): string {
   return candidate
 }
 
-const CLAUDE_MD = (name: string) => `# ${name}
+const CLAUDE_MD = (name: string, guideName: string | null) => `# ${name}
 
 You are SlideCraft's presentation assistant. The user is building a
 **presentation / slide deck** in this project folder. Everything in this
 conversation is in service of that goal.
-
+${
+  guideName
+    ? `
+## Design guide
+This project uses the **${guideName}** design guide. Its files (style notes,
+colors, fonts, logos, examples) are in **./design-guide** — read them and follow
+them as the visual system for this deck. When you use a logo or image from the
+guide, copy it into **./assets** and reference it from there (the ./design-guide
+folder is reference-only and is not published).
+`
+    : ''
+}
 ## Working agreement
 - User-provided assets (images, logos, documents, data, brand guidelines) are
   placed in **./assets**. Always check that folder for material to use.
@@ -76,7 +87,9 @@ function readMeta(dir: string): Project | null {
       path: dir,
       createdAt: raw.createdAt ?? new Date(0).toISOString(),
       sessionId: raw.sessionId ?? null,
-      publish: raw.publish ?? null
+      publish: raw.publish ?? null,
+      guideId: raw.guideId ?? null,
+      guideName: raw.guideName ?? null
     }
   } catch {
     return null
@@ -99,7 +112,11 @@ export function listProjects(): Project[] {
   return projects.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
-export function createProject(name: string, isoNow: string): Project {
+export function createProject(
+  name: string,
+  isoNow: string,
+  guide?: { id: string; name: string } | null
+): Project {
   const root = projectsRoot()
   const dir = uniqueDir(root, slugify(name))
   mkdirSync(join(dir, 'assets'), { recursive: true })
@@ -110,10 +127,12 @@ export function createProject(name: string, isoNow: string): Project {
     path: dir,
     createdAt: isoNow,
     sessionId: null,
-    publish: null
+    publish: null,
+    guideId: guide?.id ?? null,
+    guideName: guide?.name ?? null
   }
   writeMeta(project)
-  writeFileSync(join(dir, 'CLAUDE.md'), CLAUDE_MD(project.name), 'utf8')
+  writeFileSync(join(dir, 'CLAUDE.md'), CLAUDE_MD(project.name, project.guideName), 'utf8')
   return project
 }
 

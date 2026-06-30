@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import type { ClaudeStatus, Project } from '../../shared/types'
+import type { ClaudeStatus, Project, DesignGuide } from '../../shared/types'
 import { SetupWizard } from './components/SetupWizard'
 import { Sidebar } from './components/Sidebar'
 import { ProjectView } from './components/ProjectView'
@@ -8,6 +8,7 @@ export function App(): JSX.Element {
   const [status, setStatus] = useState<ClaudeStatus | null>(null)
   const [ready, setReady] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
+  const [guides, setGuides] = useState<DesignGuide[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const detect = useCallback(async () => {
@@ -22,13 +23,22 @@ export function App(): JSX.Element {
     return list
   }, [])
 
+  const refreshGuides = useCallback(async () => {
+    const list = await window.api.guides.list()
+    setGuides(list)
+    return list
+  }, [])
+
   useEffect(() => {
     detect()
   }, [detect])
 
   useEffect(() => {
-    if (ready) refreshProjects()
-  }, [ready, refreshProjects])
+    if (ready) {
+      refreshProjects()
+      refreshGuides()
+    }
+  }, [ready, refreshProjects, refreshGuides])
 
   // Gate on setup until Claude is installed AND authenticated.
   const needsSetup = !ready && (!status || !status.installed || !status.authed)
@@ -53,10 +63,11 @@ export function App(): JSX.Element {
     <div className="app">
       <Sidebar
         projects={projects}
+        guides={guides}
         activeId={activeId}
         onSelect={setActiveId}
-        onCreate={async (name) => {
-          const project = await window.api.projects.create(name)
+        onCreate={async (name, guideId) => {
+          const project = await window.api.projects.create(name, guideId)
           await refreshProjects()
           setActiveId(project.id)
         }}
@@ -65,6 +76,7 @@ export function App(): JSX.Element {
           await refreshProjects()
           setActiveId((cur) => (cur === id ? null : cur))
         }}
+        onGuidesChanged={refreshGuides}
       />
       <main className="main">
         {active ? (

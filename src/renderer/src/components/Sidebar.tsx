@@ -1,29 +1,43 @@
 import { useState } from 'react'
-import type { Project } from '../../../shared/types'
+import type { Project, DesignGuide } from '../../../shared/types'
 import { UpdaterButton } from './UpdaterButton'
+import { GuidesManager } from './GuidesManager'
 
 interface Props {
   projects: Project[]
+  guides: DesignGuide[]
   activeId: string | null
   onSelect: (id: string) => void
-  onCreate: (name: string) => Promise<void>
+  onCreate: (name: string, guideId: string | null) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  onGuidesChanged: () => Promise<unknown>
 }
 
-export function Sidebar({ projects, activeId, onSelect, onCreate, onDelete }: Props): JSX.Element {
+export function Sidebar({
+  projects,
+  guides,
+  activeId,
+  onSelect,
+  onCreate,
+  onDelete,
+  onGuidesChanged
+}: Props): JSX.Element {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
+  const [guideId, setGuideId] = useState<string>('')
   const [busy, setBusy] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [showGuides, setShowGuides] = useState(false)
 
   const submit = async (): Promise<void> => {
     const trimmed = name.trim()
     if (!trimmed) return
     setBusy(true)
-    await onCreate(trimmed)
+    await onCreate(trimmed, guideId || null)
     setBusy(false)
     setName('')
+    setGuideId('')
     setCreating(false)
   }
 
@@ -57,6 +71,18 @@ export function Sidebar({ projects, activeId, onSelect, onCreate, onDelete }: Pr
               if (e.key === 'Escape') setCreating(false)
             }}
           />
+          <select
+            className="text-input select"
+            value={guideId}
+            onChange={(e) => setGuideId(e.target.value)}
+          >
+            <option value="">No design guide</option>
+            {guides.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
           <div className="new-project-actions">
             <button className="btn sm" onClick={submit} disabled={busy}>
               Create
@@ -92,8 +118,19 @@ export function Sidebar({ projects, activeId, onSelect, onCreate, onDelete }: Pr
       </nav>
 
       <footer className="sidebar-footer">
+        <button className="btn sm ghost guides-btn" onClick={() => setShowGuides(true)}>
+          Design guides{guides.length ? ` (${guides.length})` : ''}
+        </button>
         <UpdaterButton />
       </footer>
+
+      {showGuides && (
+        <GuidesManager
+          guides={guides}
+          onClose={() => setShowGuides(false)}
+          onChanged={onGuidesChanged}
+        />
+      )}
 
       {pendingDelete && (
         <div className="modal-backdrop" onClick={() => !deleting && setPendingDelete(null)}>
