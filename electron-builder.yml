@@ -9,6 +9,7 @@ files:
 asarUnpack:
   - "**/node_modules/@lydell/**"
 mac:
+  icon: build/icon.icns
   category: public.app-category.productivity
   target:
     - dmg
@@ -17,6 +18,7 @@ mac:
   # Developer ID certificate (CSC_LINK / CSC_KEY_PASSWORD) and remove `identity`.
   identity: null
 win:
+  icon: build/icon.ico
   target:
     - nsis
 nsis:
