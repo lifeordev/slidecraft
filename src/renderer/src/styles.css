@@ -529,6 +529,24 @@ button {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  position: relative;
+}
+.assets-panel.drag-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -6px;
+}
+.assets-drop {
+  position: absolute;
+  inset: 0;
+  background: rgba(122, 162, 247, 0.1);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 12px;
+  pointer-events: none;
 }
 .assets-head {
   display: flex;
