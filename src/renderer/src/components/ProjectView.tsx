@@ -3,41 +3,85 @@ import type { Project } from '../../../shared/types'
 import { ChatView } from './ChatView'
 import { AssetsPanel } from './AssetsPanel'
 import { TerminalPanel } from './TerminalPanel'
+import { PublishDialog } from './PublishDialog'
 
 interface Props {
   project: Project
+  onRefresh: () => Promise<unknown>
 }
 
 type Tab = 'chat' | 'terminal'
 
-export function ProjectView({ project }: Props): JSX.Element {
+export function ProjectView({ project, onRefresh }: Props): JSX.Element {
   const [tab, setTab] = useState<Tab>('chat')
   const [assetKey, setAssetKey] = useState(0)
+  const [previewBusy, setPreviewBusy] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [showPublish, setShowPublish] = useState(false)
+
+  const preview = async (): Promise<void> => {
+    setNotice(null)
+    setPreviewBusy(true)
+    const res = await window.api.preview.open(project.id)
+    setPreviewBusy(false)
+    if (!res.ok) setNotice(res.error)
+  }
 
   return (
     <div className="project">
       <header className="project-header">
         <div className="project-title">
           <h2>{project.name}</h2>
-          <button className="link-btn" onClick={() => window.api.projects.reveal(project.id)}>
-            {project.path}
-          </button>
+          <div className="project-sub">
+            <button className="link-btn" onClick={() => window.api.projects.reveal(project.id)}>
+              {project.path}
+            </button>
+            {project.publish && (
+              <a
+                className="live-chip"
+                href={project.publish.url}
+                target="_blank"
+                rel="noreferrer"
+                title={project.publish.url}
+              >
+                {project.publish.hasPassword ? '🔒 ' : ''}Live ↗
+              </a>
+            )}
+          </div>
         </div>
-        <div className="tabs">
-          <button
-            className={`tab ${tab === 'chat' ? 'active' : ''}`}
-            onClick={() => setTab('chat')}
-          >
-            Chat
+
+        <div className="header-actions">
+          <button className="btn sm" onClick={preview} disabled={previewBusy}>
+            {previewBusy ? 'Opening…' : 'Preview'}
           </button>
-          <button
-            className={`tab ${tab === 'terminal' ? 'active' : ''}`}
-            onClick={() => setTab('terminal')}
-          >
-            Terminal
+          <button className="btn sm primary" onClick={() => setShowPublish(true)}>
+            {project.publish ? 'Republish' : 'Publish'}
           </button>
+          <div className="tabs">
+            <button
+              className={`tab ${tab === 'chat' ? 'active' : ''}`}
+              onClick={() => setTab('chat')}
+            >
+              Chat
+            </button>
+            <button
+              className={`tab ${tab === 'terminal' ? 'active' : ''}`}
+              onClick={() => setTab('terminal')}
+            >
+              Terminal
+            </button>
+          </div>
         </div>
       </header>
+
+      {notice && (
+        <div className="header-notice">
+          {notice}
+          <button className="link-btn" onClick={() => setNotice(null)}>
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div className="project-body">
         <div className="project-main">
@@ -55,6 +99,14 @@ export function ProjectView({ project }: Props): JSX.Element {
         </div>
         <AssetsPanel project={project} refreshKey={assetKey} />
       </div>
+
+      {showPublish && (
+        <PublishDialog
+          project={project}
+          onClose={() => setShowPublish(false)}
+          onPublished={onRefresh}
+        />
+      )}
     </div>
   )
 }

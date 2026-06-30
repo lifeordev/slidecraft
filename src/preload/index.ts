@@ -7,7 +7,11 @@ import type {
   SessionEvent,
   TerminalData,
   TerminalExit,
-  UpdateStatus
+  UpdateStatus,
+  PreviewResult,
+  HostingStatus,
+  TokenResult,
+  PublishResult
 } from '../shared/types'
 
 const api: Api = {
@@ -51,6 +55,16 @@ const api: Api = {
       ipcRenderer.on('terminal:exit', listener)
       return () => ipcRenderer.removeListener('terminal:exit', listener)
     }
+  },
+  preview: {
+    open: (projectId) => ipcRenderer.invoke('preview:open', projectId) as Promise<PreviewResult>
+  },
+  hosting: {
+    status: () => ipcRenderer.invoke('hosting:status') as Promise<HostingStatus>,
+    saveToken: (token) => ipcRenderer.invoke('hosting:saveToken', token) as Promise<TokenResult>,
+    clearToken: () => ipcRenderer.invoke('hosting:clearToken') as Promise<void>,
+    publish: (projectId, opts) =>
+      ipcRenderer.invoke('hosting:publish', projectId, opts) as Promise<PublishResult>
   },
   updater: {
     status: () => ipcRenderer.invoke('updater:status') as Promise<UpdateStatus>,

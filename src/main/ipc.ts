@@ -11,6 +11,8 @@ import {
 import { sessionManager } from './session'
 import { terminalManager } from './terminal'
 import { initUpdater, checkForUpdates, installUpdate, openReleases, getStatus } from './updater'
+import { openPreview, disposePreview } from './preview'
+import { hostingStatus, saveToken, clearToken, publish } from './hosting'
 
 function broadcast(channel: string, payload: unknown): void {
   for (const win of BrowserWindow.getAllWindows()) {
@@ -62,6 +64,17 @@ export function registerIpc(): void {
   terminalManager.on('data', (payload) => broadcast('terminal:data', payload))
   terminalManager.on('exit', (payload) => broadcast('terminal:exit', payload))
 
+  // --- preview ---
+  ipcMain.handle('preview:open', (_e, projectId: string) => openPreview(projectId))
+
+  // --- hosting / publish ---
+  ipcMain.handle('hosting:status', () => hostingStatus())
+  ipcMain.handle('hosting:saveToken', (_e, token: string) => saveToken(token))
+  ipcMain.handle('hosting:clearToken', () => clearToken())
+  ipcMain.handle('hosting:publish', (_e, projectId: string, opts: { password?: string }) =>
+    publish(projectId, opts)
+  )
+
   // --- updater ---
   initUpdater()
   ipcMain.handle('updater:status', () => getStatus())
@@ -73,4 +86,5 @@ export function registerIpc(): void {
 export function disposeBackends(): void {
   sessionManager.stopAll()
   terminalManager.killAll()
+  disposePreview()
 }

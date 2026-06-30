@@ -10,7 +10,7 @@ import {
   statSync
 } from 'fs'
 import { join, basename } from 'path'
-import type { Project, AssetFile } from '../shared/types'
+import type { Project, AssetFile, PublishInfo } from '../shared/types'
 
 const META_FILE = '.slidecraft.json'
 
@@ -54,9 +54,11 @@ conversation is in service of that goal.
 ## Output
 - Author slides as **Marp-flavored Markdown** in \`slides.md\` (one \`---\` per
   slide) so they are easy to read and version.
-- When asked to preview or finalize, render a self-contained \`deck.html\`
-  (e.g. with Marp or reveal.js) that opens in a browser.
-- Reference images from ./assets with relative paths.
+- Always (re)render a self-contained **\`deck.html\`** at the project root
+  (e.g. with Marp or reveal.js). SlideCraft's **Preview** and **Publish**
+  buttons serve \`deck.html\` (falling back to \`index.html\`), so keep it
+  current whenever the slides change.
+- Reference images from ./assets with relative paths so they work when published.
 
 Keep iterations fast and visual. Default to a clean, modern, legible design.
 `
@@ -72,7 +74,8 @@ function readMeta(dir: string): Project | null {
       name: raw.name,
       path: dir,
       createdAt: raw.createdAt ?? new Date(0).toISOString(),
-      sessionId: raw.sessionId ?? null
+      sessionId: raw.sessionId ?? null,
+      publish: raw.publish ?? null
     }
   } catch {
     return null
@@ -105,7 +108,8 @@ export function createProject(name: string, isoNow: string): Project {
     name: name.trim() || basename(dir),
     path: dir,
     createdAt: isoNow,
-    sessionId: null
+    sessionId: null,
+    publish: null
   }
   writeMeta(project)
   writeFileSync(join(dir, 'CLAUDE.md'), CLAUDE_MD(project.name), 'utf8')
@@ -120,6 +124,14 @@ export function setSessionId(id: string, sessionId: string): void {
   const project = getProject(id)
   if (!project) return
   writeMeta({ ...project, sessionId })
+}
+
+export function setPublishInfo(id: string, publish: PublishInfo): Project | null {
+  const project = getProject(id)
+  if (!project) return null
+  const updated = { ...project, publish }
+  writeMeta(updated)
+  return updated
 }
 
 export function assetsDir(project: Project): string {

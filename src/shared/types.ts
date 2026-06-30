@@ -10,6 +10,14 @@ export interface ClaudeStatus {
   authed: boolean
 }
 
+export interface PublishInfo {
+  provider: 'netlify'
+  siteId: string
+  url: string
+  hasPassword: boolean
+  publishedAt: string
+}
+
 export interface Project {
   id: string
   name: string
@@ -18,6 +26,8 @@ export interface Project {
   createdAt: string
   /** Last Claude Code session id used for this project (for --resume). */
   sessionId: string | null
+  /** Where this deck was last published, if anywhere. */
+  publish: PublishInfo | null
 }
 
 export interface AssetFile {
@@ -70,6 +80,26 @@ export interface UpdateStatus {
   manual?: boolean
 }
 
+export interface HostingStatus {
+  provider: 'netlify'
+  /** True once a valid API token has been saved. */
+  configured: boolean
+  /** Account email shown after the token is validated. */
+  account: string | null
+  /** Whether OS-level encryption is available for storing the token. */
+  encryptionAvailable: boolean
+}
+
+export type TokenResult =
+  | { ok: true; account: string }
+  | { ok: false; error: string }
+
+export type PreviewResult = { ok: true; url: string } | { ok: false; error: string }
+
+export type PublishResult =
+  | { ok: true; project: Project }
+  | { ok: false; error: string; needsSetup?: boolean }
+
 /** The API surface exposed to the renderer via the preload contextBridge. */
 export interface Api {
   setup: {
@@ -97,6 +127,17 @@ export interface Api {
     kill: (id: string) => void
     onData: (cb: (data: TerminalData) => void) => () => void
     onExit: (cb: (exit: TerminalExit) => void) => () => void
+  }
+  preview: {
+    /** Start (or reuse) a local preview of the project's deck. */
+    open: (projectId: string) => Promise<PreviewResult>
+  }
+  hosting: {
+    status: () => Promise<HostingStatus>
+    saveToken: (token: string) => Promise<TokenResult>
+    clearToken: () => Promise<void>
+    /** Deploy the project's deck; optionally password-protect it. */
+    publish: (projectId: string, opts: { password?: string }) => Promise<PublishResult>
   }
   updater: {
     status: () => Promise<UpdateStatus>
