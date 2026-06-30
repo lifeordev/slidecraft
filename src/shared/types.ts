@@ -46,6 +46,30 @@ export interface TerminalExit {
   exitCode: number
 }
 
+export type UpdateState =
+  | 'idle'
+  | 'dev'
+  | 'checking'
+  | 'available'
+  | 'not-available'
+  | 'downloading'
+  | 'downloaded'
+  | 'error'
+
+export interface UpdateStatus {
+  state: UpdateState
+  /** Currently running app version. */
+  version: string
+  /** Newer version available, when applicable. */
+  newVersion?: string
+  /** Download progress 0–100 while state is 'downloading'. */
+  percent?: number
+  /** Human-readable detail for the 'error' state. */
+  message?: string
+  /** True when the new version must be installed manually (e.g. unsigned macOS). */
+  manual?: boolean
+}
+
 /** The API surface exposed to the renderer via the preload contextBridge. */
 export interface Api {
   setup: {
@@ -73,6 +97,14 @@ export interface Api {
     kill: (id: string) => void
     onData: (cb: (data: TerminalData) => void) => () => void
     onExit: (cb: (exit: TerminalExit) => void) => () => void
+  }
+  updater: {
+    status: () => Promise<UpdateStatus>
+    check: () => Promise<UpdateStatus>
+    /** Install a downloaded update (Windows) or open the releases page (macOS). */
+    install: () => Promise<void>
+    openReleases: () => Promise<void>
+    onStatus: (cb: (status: UpdateStatus) => void) => () => void
   }
   /** Resolve the absolute filesystem path for a dropped File (Electron webUtils). */
   pathForFile: (file: File) => string

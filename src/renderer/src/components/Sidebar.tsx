@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Project } from '../../../shared/types'
+import { UpdaterButton } from './UpdaterButton'
 
 interface Props {
   projects: Project[]
@@ -70,6 +71,10 @@ export function Sidebar({ projects, activeId, onSelect, onCreate }: Props): JSX.
           </button>
         ))}
       </nav>
+
+      <footer className="sidebar-footer">
+        <UpdaterButton />
+      </footer>
     </aside>
   )
 }

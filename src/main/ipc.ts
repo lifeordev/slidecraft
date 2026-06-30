@@ -10,6 +10,7 @@ import {
 } from './projects'
 import { sessionManager } from './session'
 import { terminalManager } from './terminal'
+import { initUpdater, checkForUpdates, installUpdate, openReleases, getStatus } from './updater'
 
 function broadcast(channel: string, payload: unknown): void {
   for (const win of BrowserWindow.getAllWindows()) {
@@ -60,6 +61,13 @@ export function registerIpc(): void {
   ipcMain.on('terminal:kill', (_e, id: string) => terminalManager.kill(id))
   terminalManager.on('data', (payload) => broadcast('terminal:data', payload))
   terminalManager.on('exit', (payload) => broadcast('terminal:exit', payload))
+
+  // --- updater ---
+  initUpdater()
+  ipcMain.handle('updater:status', () => getStatus())
+  ipcMain.handle('updater:check', () => checkForUpdates())
+  ipcMain.handle('updater:install', () => installUpdate())
+  ipcMain.handle('updater:openReleases', () => openReleases())
 }
 
 export function disposeBackends(): void {

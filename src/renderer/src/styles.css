@@ -277,6 +277,39 @@ button {
   background: var(--bg-3);
   box-shadow: inset 2px 0 0 var(--accent);
 }
+.sidebar-footer {
+  border-top: 1px solid var(--border);
+  padding: 10px 12px;
+}
+.updater {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.updater-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.updater-version {
+  font-size: 11px;
+  color: var(--muted);
+}
+.updater-note {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.8;
+}
+.updater .btn {
+  width: 100%;
+}
+.btn.sm.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0b0d12;
+  font-weight: 600;
+}
 
 /* ---------- main / project ---------- */
 .main {

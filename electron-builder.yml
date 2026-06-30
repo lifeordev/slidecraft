@@ -26,4 +26,6 @@ publish:
   provider: github
   owner: lifeordev
   repo: slidecraft
-  releaseType: draft
+  # Auto-published so the in-app updater can detect releases. Switch to `draft`
+  # if you'd rather review/edit each release before it goes live.
+  releaseType: release

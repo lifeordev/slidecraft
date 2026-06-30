@@ -6,7 +6,8 @@ import type {
   AssetFile,
   SessionEvent,
   TerminalData,
-  TerminalExit
+  TerminalExit,
+  UpdateStatus
 } from '../shared/types'
 
 const api: Api = {
@@ -49,6 +50,17 @@ const api: Api = {
       const listener = (_e: unknown, payload: TerminalExit): void => cb(payload)
       ipcRenderer.on('terminal:exit', listener)
       return () => ipcRenderer.removeListener('terminal:exit', listener)
+    }
+  },
+  updater: {
+    status: () => ipcRenderer.invoke('updater:status') as Promise<UpdateStatus>,
+    check: () => ipcRenderer.invoke('updater:check') as Promise<UpdateStatus>,
+    install: () => ipcRenderer.invoke('updater:install') as Promise<void>,
+    openReleases: () => ipcRenderer.invoke('updater:openReleases') as Promise<void>,
+    onStatus: (cb) => {
+      const listener = (_e: unknown, status: UpdateStatus): void => cb(status)
+      ipcRenderer.on('updater:status', listener)
+      return () => ipcRenderer.removeListener('updater:status', listener)
     }
   },
   pathForFile: (file: File) => webUtils.getPathForFile(file)
