@@ -58,7 +58,7 @@ npm run typecheck  # type-check main + renderer
 > Requires the `claude` CLI to be installable/installed and a Claude
 > subscription to sign in. The app guides you through both on first run.
 
-## Package
+## Package locally
 
 ```bash
 npm run pack:mac   # build a macOS .dmg / .zip   (run on macOS)
@@ -67,6 +67,37 @@ npm run pack       # build for the current platform
 ```
 
 Output is written to `release/`.
+
+## Release (CI) & auto-update
+
+Pushing a tag builds and **publishes** a GitHub Release with installers for
+Windows and macOS (Apple Silicon):
+
+```bash
+# bump "version" in package.json first, then:
+git tag -a v0.3.0 -m "v0.3.0"
+git push origin v0.3.0
+```
+
+The workflow (`.github/workflows/release.yml`) builds on `windows-latest` and
+`macos-latest` and uploads the artifacts plus `latest.yml` / `latest-mac.yml`,
+which the in-app updater consumes. You can also run it from the **Actions** tab
+(`workflow_dispatch`).
+
+The app has a **Check for updates** button (sidebar footer) and also checks
+silently on startup:
+
+- **Windows** — downloads the update and offers "Restart & install".
+- **macOS** — detects the new version and opens the releases page to download.
+  Auto-install is disabled because the build is **unsigned** (Squirrel.Mac
+  requires a Developer ID signature). To enable full macOS auto-update, sign &
+  notarize the build (set `CSC_LINK` / `CSC_KEY_PASSWORD` in CI and remove
+  `identity: null` from `electron-builder.yml`), then set `manualMac = false` in
+  `src/main/updater.ts`.
+
+> Releases auto-publish (`releaseType: release`). Switch to `draft` in
+> `electron-builder.yml` if you'd rather review each release before it goes live
+> — but note the updater only detects **published** releases.
 
 ## Notes
 
