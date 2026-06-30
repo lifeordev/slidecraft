@@ -1,0 +1,88 @@
+import { useEffect, useState, useCallback } from 'react'
+import type { ClaudeStatus, Project } from '../../shared/types'
+import { SetupWizard } from './components/SetupWizard'
+import { Sidebar } from './components/Sidebar'
+import { ProjectView } from './components/ProjectView'
+
+export function App(): JSX.Element {
+  const [status, setStatus] = useState<ClaudeStatus | null>(null)
+  const [ready, setReady] = useState(false)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  const detect = useCallback(async () => {
+    const s = await window.api.setup.detect()
+    setStatus(s)
+    return s
+  }, [])
+
+  const refreshProjects = useCallback(async () => {
+    const list = await window.api.projects.list()
+    setProjects(list)
+    return list
+  }, [])
+
+  useEffect(() => {
+    detect()
+  }, [detect])
+
+  useEffect(() => {
+    if (ready) refreshProjects()
+  }, [ready, refreshProjects])
+
+  // Gate on setup until Claude is installed AND authenticated.
+  const needsSetup = !ready && (!status || !status.installed || !status.authed)
+
+  if (status === null) {
+    return <div className="boot">Starting SlideCraft…</div>
+  }
+
+  if (needsSetup) {
+    return (
+      <SetupWizard
+        status={status}
+        onRecheck={detect}
+        onDone={() => setReady(true)}
+      />
+    )
+  }
+
+  const active = projects.find((p) => p.id === activeId) ?? null
+
+  return (
+    <div className="app">
+      <Sidebar
+        projects={projects}
+        activeId={activeId}
+        onSelect={setActiveId}
+        onCreate={async (name) => {
+          const project = await window.api.projects.create(name)
+          await refreshProjects()
+          setActiveId(project.id)
+        }}
+      />
+      <main className="main">
+        {active ? (
+          <ProjectView key={active.id} project={active} />
+        ) : (
+          <EmptyState />
+        )}
+      </main>
+    </div>
+  )
+}
+
+function EmptyState(): JSX.Element {
+  return (
+    <div className="empty">
+      <div className="empty-card">
+        <h1>SlideCraft</h1>
+        <p>Create a presentation project to start building a deck with Claude.</p>
+        <p className="muted">
+          Each project is its own folder. Drop in assets, then describe the deck
+          you want — Claude builds it for you.
+        </p>
+      </div>
+    </div>
+  )
+}

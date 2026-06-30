@@ -1,0 +1,29 @@
+appId: com.slidecraft.app
+productName: SlideCraft
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+asarUnpack:
+  - "**/node_modules/@lydell/**"
+mac:
+  category: public.app-category.productivity
+  target:
+    - dmg
+    - zip
+  # Unsigned builds for CI. To ship signed/notarized apps, provide an Apple
+  # Developer ID certificate (CSC_LINK / CSC_KEY_PASSWORD) and remove `identity`.
+  identity: null
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+publish:
+  provider: github
+  owner: lifeordev
+  repo: slidecraft
+  releaseType: draft
