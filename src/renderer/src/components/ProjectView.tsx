@@ -16,10 +16,10 @@ export function ProjectView({ project }: Props): JSX.Element {
   const [previewBusy, setPreviewBusy] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const preview = async (): Promise<void> => {
+  const open = async (present: boolean): Promise<void> => {
     setNotice(null)
     setPreviewBusy(true)
-    const res = await window.api.preview.open(project.id)
+    const res = await window.api.preview.open(project.id, present)
     setPreviewBusy(false)
     if (!res.ok) setNotice(res.error)
   }
@@ -37,8 +37,11 @@ export function ProjectView({ project }: Props): JSX.Element {
         </div>
 
         <div className="header-actions">
-          <button className="btn sm primary" onClick={preview} disabled={previewBusy}>
-            {previewBusy ? 'Opening…' : 'Preview'}
+          <button className="btn sm" onClick={() => open(false)} disabled={previewBusy}>
+            Preview
+          </button>
+          <button className="btn sm primary" onClick={() => open(true)} disabled={previewBusy}>
+            Present
           </button>
           <div className="tabs">
             <button

@@ -98,7 +98,9 @@ export function registerIpc(): void {
   })
 
   // --- preview ---
-  ipcMain.handle('preview:open', (_e, projectId: string) => openPreview(projectId))
+  ipcMain.handle('preview:open', (_e, projectId: string, present?: boolean) =>
+    openPreview(projectId, present)
+  )
 
   // --- updater ---
   initUpdater()

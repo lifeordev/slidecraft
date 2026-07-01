@@ -65,7 +65,8 @@ const api: Api = {
     reveal: (id) => ipcRenderer.invoke('guides:reveal', id) as Promise<void>
   },
   preview: {
-    open: (projectId) => ipcRenderer.invoke('preview:open', projectId) as Promise<PreviewResult>
+    open: (projectId, present) =>
+      ipcRenderer.invoke('preview:open', projectId, present ?? false) as Promise<PreviewResult>
   },
   updater: {
     status: () => ipcRenderer.invoke('updater:status') as Promise<UpdateStatus>,

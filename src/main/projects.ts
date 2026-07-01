@@ -67,9 +67,12 @@ folder is reference-only).
 - Author slides as **Marp-flavored Markdown** in \`slides.md\` (one \`---\` per
   slide) so they are easy to read and version.
 - Always (re)render a self-contained **\`deck.html\`** at the project root
-  (e.g. with Marp or reveal.js). SlideCraft's **Preview** button serves
-  \`deck.html\` (falling back to \`index.html\`), so keep it current whenever
-  the slides change.
+  (e.g. with Marp or reveal.js). SlideCraft's **Preview** / **Present** buttons
+  serve \`deck.html\` (falling back to \`index.html\`), so keep it current
+  whenever the slides change.
+- Make the deck **full-bleed**: each slide should fill the whole viewport
+  (100vw × 100vh) with no black margins, matching the screen aspect ratio given
+  in the system prompt, so Present mode fills the display edge-to-edge.
 - Reference images from ./assets with relative paths.
 
 Keep iterations fast and visual. Default to a clean, modern, legible design.

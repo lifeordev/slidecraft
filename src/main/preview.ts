@@ -57,7 +57,19 @@ function ensureServer(): Promise<number> {
   })
 }
 
-export async function openPreview(projectId: string): Promise<PreviewResult> {
+function applyMode(win: BrowserWindow, present: boolean): void {
+  if (present) {
+    win.setFullScreen(true)
+  } else {
+    win.setFullScreen(false)
+    win.maximize()
+  }
+}
+
+export async function openPreview(
+  projectId: string,
+  present = false
+): Promise<PreviewResult> {
   const project = getProject(projectId)
   if (!project) return { ok: false, error: 'Project not found.' }
 
@@ -78,7 +90,8 @@ export async function openPreview(projectId: string): Promise<PreviewResult> {
 
   const existing = windows.get(projectId)
   if (existing && !existing.isDestroyed()) {
-    existing.loadURL(url)
+    await existing.loadURL(url) // pick up the latest deck
+    applyMode(existing, present)
     existing.focus()
     return { ok: true, url }
   }
@@ -89,11 +102,22 @@ export async function openPreview(projectId: string): Promise<PreviewResult> {
     title: `Preview — ${project.name}`,
     backgroundColor: '#000000',
     autoHideMenuBar: true,
+    fullscreen: present,
     webPreferences: { contextIsolation: true, nodeIntegration: false }
   })
   win.on('closed', () => windows.delete(projectId))
+
+  // In present mode, let Esc drop back to a normal window instead of trapping
+  // the user in full-screen.
+  win.webContents.on('before-input-event', (_e, input) => {
+    if (input.type === 'keyDown' && input.key === 'Escape' && win.isFullScreen()) {
+      win.setFullScreen(false)
+    }
+  })
+
   windows.set(projectId, win)
   await win.loadURL(url)
+  if (!present) win.maximize()
   return { ok: true, url }
 }
 

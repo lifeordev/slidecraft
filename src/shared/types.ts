@@ -123,7 +123,7 @@ export interface Api {
   }
   preview: {
     /** Start (or reuse) a local preview of the project's deck. */
-    open: (projectId: string) => Promise<PreviewResult>
+    open: (projectId: string, present?: boolean) => Promise<PreviewResult>
   }
   updater: {
     status: () => Promise<UpdateStatus>

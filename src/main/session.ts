@@ -1,12 +1,13 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import { randomUUID } from 'crypto'
 import { EventEmitter } from 'events'
+import { screen } from 'electron'
 import type { SessionEvent, Project } from '../shared/types'
 import { claudeBinary } from './claude'
 import { spawnEnv } from './env'
 import { getProject, setSessionId } from './projects'
 
-const SYSTEM_PROMPT = [
+const BASE_PROMPT = [
   'You are SlideCraft, a focused assistant for building presentations / slide decks.',
   'The current working directory is a single presentation project.',
   'User-provided assets live in ./assets — use them when relevant.',
@@ -16,6 +17,35 @@ const SYSTEM_PROMPT = [
   'or finalize, render a self-contained deck.html. Keep the design clean and modern,',
   'and ask brief clarifying questions when the brief is ambiguous.'
 ].join(' ')
+
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b)
+}
+
+/**
+ * Build the system prompt, injecting the user's screen dimensions so Claude
+ * authors a full-bleed deck that fills THIS display edge-to-edge (rather than a
+ * fixed-aspect slide that gets letterboxed with black bars in Preview/Present).
+ */
+function buildSystemPrompt(): string {
+  let sizing =
+    'Build deck.html full-bleed: each slide must fill the entire viewport' +
+    ' (100vw × 100vh) with no black margins.'
+  try {
+    const { width, height } = screen.getPrimaryDisplay().size
+    const g = gcd(width, height) || 1
+    sizing =
+      `The user's screen is ${width}×${height} (aspect ${width / g}:${height / g}).` +
+      ' Build deck.html full-bleed so each slide fills the entire viewport' +
+      ' (100vw × 100vh) with no black margins, and design the slide aspect ratio' +
+      ` to match this screen (${width / g}:${height / g}) so it fills edge-to-edge` +
+      ' in Preview/Present. If you use reveal.js, set its width/height to the' +
+      ' screen size (or width/height: "100%") rather than the default 960×700.'
+  } catch {
+    /* screen unavailable (e.g. headless) — keep the generic full-bleed guidance */
+  }
+  return `${BASE_PROMPT} ${sizing}`
+}
 
 interface Session {
   projectId: string
@@ -54,7 +84,7 @@ class SessionManager extends EventEmitter {
       '--output-format', 'stream-json',
       '--verbose',
       '--permission-mode', 'bypassPermissions',
-      '--append-system-prompt', SYSTEM_PROMPT
+      '--append-system-prompt', buildSystemPrompt()
     ]
     if (resume) {
       args.push('--resume', resume)
