@@ -3,21 +3,18 @@ import type { Project } from '../../../shared/types'
 import { ChatView } from './ChatView'
 import { AssetsPanel } from './AssetsPanel'
 import { TerminalPanel } from './TerminalPanel'
-import { PublishDialog } from './PublishDialog'
 
 interface Props {
   project: Project
-  onRefresh: () => Promise<unknown>
 }
 
 type Tab = 'chat' | 'terminal'
 
-export function ProjectView({ project, onRefresh }: Props): JSX.Element {
+export function ProjectView({ project }: Props): JSX.Element {
   const [tab, setTab] = useState<Tab>('chat')
   const [assetKey, setAssetKey] = useState(0)
   const [previewBusy, setPreviewBusy] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
-  const [showPublish, setShowPublish] = useState(false)
 
   const preview = async (): Promise<void> => {
     setNotice(null)
@@ -36,26 +33,12 @@ export function ProjectView({ project, onRefresh }: Props): JSX.Element {
             <button className="link-btn" onClick={() => window.api.projects.reveal(project.id)}>
               {project.path}
             </button>
-            {project.publish && (
-              <a
-                className="live-chip"
-                href={project.publish.url}
-                target="_blank"
-                rel="noreferrer"
-                title={project.publish.url}
-              >
-                {project.publish.hasPassword ? '🔒 ' : ''}Live ↗
-              </a>
-            )}
           </div>
         </div>
 
         <div className="header-actions">
-          <button className="btn sm" onClick={preview} disabled={previewBusy}>
+          <button className="btn sm primary" onClick={preview} disabled={previewBusy}>
             {previewBusy ? 'Opening…' : 'Preview'}
-          </button>
-          <button className="btn sm primary" onClick={() => setShowPublish(true)}>
-            {project.publish ? 'Republish' : 'Publish'}
           </button>
           <div className="tabs">
             <button
@@ -99,14 +82,6 @@ export function ProjectView({ project, onRefresh }: Props): JSX.Element {
         </div>
         <AssetsPanel project={project} refreshKey={assetKey} />
       </div>
-
-      {showPublish && (
-        <PublishDialog
-          project={project}
-          onClose={() => setShowPublish(false)}
-          onPublished={onRefresh}
-        />
-      )}
     </div>
   )
 }

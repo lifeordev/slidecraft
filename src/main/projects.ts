@@ -11,7 +11,7 @@ import {
   rmSync
 } from 'fs'
 import { join, basename, normalize, sep } from 'path'
-import type { Project, AssetFile, PublishInfo } from '../shared/types'
+import type { Project, AssetFile } from '../shared/types'
 
 const META_FILE = '.slidecraft.json'
 
@@ -52,7 +52,7 @@ This project uses the **${guideName}** design guide. Its files (style notes,
 colors, fonts, logos, examples) are in **./design-guide** — read them and follow
 them as the visual system for this deck. When you use a logo or image from the
 guide, copy it into **./assets** and reference it from there (the ./design-guide
-folder is reference-only and is not published).
+folder is reference-only).
 `
     : ''
 }
@@ -67,10 +67,10 @@ folder is reference-only and is not published).
 - Author slides as **Marp-flavored Markdown** in \`slides.md\` (one \`---\` per
   slide) so they are easy to read and version.
 - Always (re)render a self-contained **\`deck.html\`** at the project root
-  (e.g. with Marp or reveal.js). SlideCraft's **Preview** and **Publish**
-  buttons serve \`deck.html\` (falling back to \`index.html\`), so keep it
-  current whenever the slides change.
-- Reference images from ./assets with relative paths so they work when published.
+  (e.g. with Marp or reveal.js). SlideCraft's **Preview** button serves
+  \`deck.html\` (falling back to \`index.html\`), so keep it current whenever
+  the slides change.
+- Reference images from ./assets with relative paths.
 
 Keep iterations fast and visual. Default to a clean, modern, legible design.
 `
@@ -87,7 +87,6 @@ function readMeta(dir: string): Project | null {
       path: dir,
       createdAt: raw.createdAt ?? new Date(0).toISOString(),
       sessionId: raw.sessionId ?? null,
-      publish: raw.publish ?? null,
       guideId: raw.guideId ?? null,
       guideName: raw.guideName ?? null
     }
@@ -127,7 +126,6 @@ export function createProject(
     path: dir,
     createdAt: isoNow,
     sessionId: null,
-    publish: null,
     guideId: guide?.id ?? null,
     guideName: guide?.name ?? null
   }
@@ -144,14 +142,6 @@ export function setSessionId(id: string, sessionId: string): void {
   const project = getProject(id)
   if (!project) return
   writeMeta({ ...project, sessionId })
-}
-
-export function setPublishInfo(id: string, publish: PublishInfo): Project | null {
-  const project = getProject(id)
-  if (!project) return null
-  const updated = { ...project, publish }
-  writeMeta(updated)
-  return updated
 }
 
 /**

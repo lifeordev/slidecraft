@@ -143,12 +143,6 @@ export function Sidebar({
                 This permanently deletes the project folder and all of its files (slides and
                 assets) from your computer. This can’t be undone.
               </p>
-              {pendingDelete.publish && (
-                <div className="hint warn">
-                  Its published page at <strong>{pendingDelete.publish.url}</strong> will stay
-                  live — remove it from your Netlify dashboard if you want it taken down.
-                </div>
-              )}
               <div className="modal-actions">
                 <button
                   className="btn ghost"

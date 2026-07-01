@@ -80,7 +80,7 @@ export function App(): JSX.Element {
       />
       <main className="main">
         {active ? (
-          <ProjectView key={active.id} project={active} onRefresh={refreshProjects} />
+          <ProjectView key={active.id} project={active} />
         ) : (
           <EmptyState />
         )}

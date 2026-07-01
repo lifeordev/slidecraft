@@ -1,10 +1,5 @@
 import { readdirSync, statSync, existsSync } from 'fs'
-import { join, relative, sep } from 'path'
-
-// Files/dirs never published or served.
-const EXCLUDE_NAMES = new Set(['.slidecraft.json', 'CLAUDE.md', '.DS_Store'])
-// `design-guide` is reference-only material and must never be published.
-const EXCLUDE_DIRS = new Set(['.git', 'node_modules', 'design-guide'])
+import { join } from 'path'
 
 // Preferred deck entry filenames, in priority order.
 const ENTRY_CANDIDATES = ['deck.html', 'index.html', 'presentation.html', 'slides.html']
@@ -21,32 +16,6 @@ export function findEntry(dir: string): string | null {
     .map((e) => e.name)
     .sort()
   return html.length ? join(dir, html[0]) : null
-}
-
-export interface DeckFile {
-  /** POSIX-style path relative to the project root (no leading slash). */
-  rel: string
-  abs: string
-}
-
-/** Recursively list publishable files under `dir`, excluding meta/junk. */
-export function collectFiles(dir: string): DeckFile[] {
-  const out: DeckFile[] = []
-  const walk = (current: string): void => {
-    for (const entry of readdirSync(current, { withFileTypes: true })) {
-      if (entry.name.startsWith('.') && entry.name !== '.well-known') continue
-      if (entry.isDirectory()) {
-        if (EXCLUDE_DIRS.has(entry.name)) continue
-        walk(join(current, entry.name))
-      } else if (entry.isFile()) {
-        if (EXCLUDE_NAMES.has(entry.name)) continue
-        const abs = join(current, entry.name)
-        out.push({ rel: relative(dir, abs).split(sep).join('/'), abs })
-      }
-    }
-  }
-  walk(dir)
-  return out
 }
 
 const CONTENT_TYPES: Record<string, string> = {
